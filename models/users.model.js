@@ -1,5 +1,7 @@
 const { Schema, model } = require('mongoose');
 
+// USERS MODELS
+
 const privSchema = Schema({
 
     cierre: {
