@@ -32,9 +32,39 @@ const getUsers = async(req, res) => {
 
 
 };
+
 /** =====================================================================
- *  GET USERS
+ *  GET USERS ID
 =========================================================================*/
+const getUserId = async(req, res = response) => {
+
+    try {
+        const id = req.params.id;
+
+        const userDB = await User.findById(id);
+        if (!userDB) {
+            return res.status(400).json({
+                ok: false,
+                msg: 'No hemos encontrado este usuario, porfavor intente nuevamente.'
+            });
+        }
+
+        res.json({
+            ok: true,
+            user: userDB
+        });
+
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            ok: false,
+            msg: 'Error inesperado, porfavor intente nuevamente'
+        });
+    }
+
+};
+
 /** =====================================================================
  *  CREATE USERS
 =========================================================================*/
@@ -102,13 +132,15 @@ const updateUser = async(req, res = response) => {
         // SEARCH USER
 
         // VALIDATE USER
-        const { password, usuario, ...campos } = req.body;
-        if (userDB.usuario !== usuario) {
-            const validarUsuario = await User.findOne({ usuario });
-            if (validarUsuario) {
+        let { password, email, ...campos } = req.body;
+        email = email.trim().toLowerCase()
+
+        if (userDB.email !== email) {
+            const validarEmail = await User.findOne({ email });
+            if (validarEmail) {
                 return res.status(400).json({
                     ok: false,
-                    msg: 'Ya existe un usuario con este nombre'
+                    msg: 'Ya existe un usuario con este email'
                 });
             }
         }
@@ -122,7 +154,7 @@ const updateUser = async(req, res = response) => {
         }
 
         // UPDATE
-        campos.usuario = usuario;
+        campos.email = email;
         const userUpdate = await User.findByIdAndUpdate(uid, campos, { new: true, useFindAndModify: false });
 
         res.json({
@@ -202,5 +234,6 @@ module.exports = {
     getUsers,
     createUsers,
     updateUser,
-    deleteUser
+    deleteUser,
+    getUserId
 };

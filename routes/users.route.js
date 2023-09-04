@@ -9,7 +9,7 @@ const { validarCampos } = require('../middlewares/validar-campos');
 const { validarJWT } = require('../middlewares/validar-jwt');
 
 // CONTROLLERS
-const { getUsers, createUsers, updateUser, deleteUser } = require('../controllers/users.controller');
+const { getUsers, createUsers, updateUser, deleteUser, getUserId } = require('../controllers/users.controller');
 
 const router = Router();
 
@@ -17,9 +17,12 @@ const router = Router();
  *  GET USERS
 =========================================================================*/
 router.get('/', validarJWT, getUsers);
+
 /** =====================================================================
- *  GET USERS
+ *  GET USERS ID
 =========================================================================*/
+router.get('/user/:id', validarJWT, getUserId);
+
 /** =====================================================================
  *  POST CREATE USER
 =========================================================================*/
@@ -40,7 +43,7 @@ router.post('/', [
 =========================================================================*/
 router.put('/:id', [
         validarJWT,
-        check('usuario', 'El usuario es obligatorio').not().isEmpty(),
+        check('email', 'El email es obligatorio').not().isEmpty(),
         check('name', 'El nombre es olbigatorio').not().isEmpty(),
         validarCampos
     ],
