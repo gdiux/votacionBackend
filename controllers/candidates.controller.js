@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 
 const Candidate = require('../models/candidates.model');
 const User = require('../models/users.model');
+const Voto = require('../models/votos.model');
 
 /** =====================================================================
  *  GET CANDIDATES
@@ -19,6 +20,19 @@ const getCandidates = async(req, res) => {
             .skip(desde),
             Candidate.countDocuments()
         ]);
+
+        for (let i = 0; i < candidates.length; i++) {
+            const candidate = candidates[i];
+
+            const votos = await Voto.find({candidate: candidate._id});
+
+            let qty = 0;
+            for (const voto of votos) {
+                qty = qty + voto.qty;
+            }
+
+            candidates[i].votos = qty;
+        }
 
         res.json({
             ok: true,

@@ -48,6 +48,7 @@ app.use('/api/search', require('./routes/search.route'));
 app.use('/api/tasks', require('./routes/tasks.route'));
 app.use('/api/uploads', require('./routes/uploads.route'));
 app.use('/api/users', require('./routes/users.route'));
+app.use('/api/votos', require('./routes/votos.route'));
 
 /* The `app.get('*', (req, res) => { ... })` code block is a route handler that is used to handle all
 GET requests that do not match any of the defined routes. */

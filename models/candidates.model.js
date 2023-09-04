@@ -25,6 +25,11 @@ const CandidateSchema = Schema({
     img: {
         type: String
     },
+    
+    votos: {
+        type: Number,
+        default: 0
+    },
 
     status: {
         type: Boolean,
