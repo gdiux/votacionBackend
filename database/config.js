@@ -1,7 +1,5 @@
 const mongoose = require('mongoose');
 
-const autoIncrement = require('mongoose-auto-increment');
-
 /**
  * The function `dbConnection` connects to a MongoDB database using the `mongoose` library and
  * initializes the `autoIncrement` plugin.
@@ -16,10 +14,8 @@ const dbConection = async() => {
         const connection = await mongoose.connect(process.env.DB_CNN, {
             useNewUrlParser: true,
             useUnifiedTopology: true,
-            useCreateIndex: true
         });
-
-        autoIncrement.initialize(connection);
+        
         console.log('DB Online');
 
     } catch (error) {

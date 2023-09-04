@@ -39,37 +39,15 @@ dbConection();
 from the specified directory. In this case, it is serving files from the 'public' directory. */
 app.use(express.static('public'));
 
-// RUTASs
-app.use('/api/alquileres', require('./routes/alquileres.route'));
-app.use('/api/bascula', require('./routes/bascula.route'));
-app.use('/api/bancos', require('./routes/bancos.route'));
-app.use('/api/bodega', require('./routes/bodega.route'));
-app.use('/api/caja', require('./routes/cajas.route'));
-app.use('/api/categorias', require('./routes/categorias.route'));
-app.use('/api/calendario', require('./routes/calendario.route'));
-app.use('/api/clients', require('./routes/clients.route'));
-app.use('/api/counters', require('./routes/counters.route'));
-app.use('/api/dataico', require('./routes/dataico.route'));
-app.use('/api/datos', require('./routes/datos.route'));
-app.use('/api/departments', require('./routes/departments.route'));
-app.use('/api/electronica', require('./routes/electronica.route'));
-app.use('/api/invoice', require('./routes/invoices.route'));
+// RUTAS
 app.use('/api/login', require('./routes/auth.route'));
+app.use('/api/candidates', require('./routes/candidates.route'));
+app.use('/api/centers', require('./routes/centers.route'));
 app.use('/api/mesas', require('./routes/mesas.route'));
-app.use('/api/movimientos', require('./routes/movimiento.route'));
-app.use('/api/users', require('./routes/users.route'));
-app.use('/api/pedidos', require('./routes/pedidos.route'));
-app.use('/api/prestamos', require('./routes/prestamo.route'));
-app.use('/api/products', require('./routes/products.route'));
-app.use('/api/proveedores', require('./routes/proveedores.route'));
 app.use('/api/search', require('./routes/search.route'));
-app.use('/api/turno', require('./routes/turnos.route'));
-app.use('/api/tax', require('./routes/tax.route'));
+app.use('/api/tasks', require('./routes/tasks.route'));
 app.use('/api/uploads', require('./routes/uploads.route'));
-
-// LOGS
-app.use('/api/log/products', require('./routes/log.products.route'));
-// LOGS
+app.use('/api/users', require('./routes/users.route'));
 
 /* The `app.get('*', (req, res) => { ... })` code block is a route handler that is used to handle all
 GET requests that do not match any of the defined routes. */

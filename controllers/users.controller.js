@@ -11,7 +11,7 @@ const getUsers = async(req, res) => {
     try {
 
         const [users, total] = await Promise.all([
-            User.find({}, 'usuario name role img status turno privilegios'),
+            User.find({}, 'email name cedula role address img status uid'),
             User.countDocuments()
         ]);
 
@@ -40,16 +40,18 @@ const getUsers = async(req, res) => {
 =========================================================================*/
 const createUsers = async(req, res = response) => {
 
-    const { usuario, password } = req.body;
-
+    
     try {
 
-        const validarUsuario = await User.findOne({ usuario });
+        let { email, password } = req.body;
+        email = email.trim().toLowerCase();
+        
+        const validarUsuario = await User.findOne({ email });
 
         if (validarUsuario) {
             return res.status(400).json({
                 ok: false,
-                msg: 'Ya existen alguien con este nombre de usuario'
+                msg: 'Ya existen alguien con este email'
             });
         }
 
@@ -58,6 +60,7 @@ const createUsers = async(req, res = response) => {
         // ENCRYPTAR PASSWORD
         const salt = bcrypt.genSaltSync();
         user.password = bcrypt.hashSync(password, salt);
+        user.email = user.email.trim().toLowerCase();
 
         // SAVE USER
         await user.save();
@@ -157,6 +160,13 @@ const deleteUser = async(req, res = response) => {
             });
         }
         // SEARCH DEPARTMENT
+
+        if (userDB.role !== 'ADMIN') {
+            return res.status(400).json({
+                ok: false,
+                msg: 'No tienes los privilegios para editar este usuario'
+            });
+        }
 
         // CHANGE STATUS
         if (userDB.status === true) {

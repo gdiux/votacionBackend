@@ -24,7 +24,8 @@ router.get('/', validarJWT, getUsers);
  *  POST CREATE USER
 =========================================================================*/
 router.post('/', [
-        check('usuario', 'El usuario es obligatorio').not().isEmpty(),
+        check('email', 'El email es obligatorio').not().isEmpty(),
+        check('cedula', 'La Cedula de ciudadania es obligatoria').not().isEmpty(),
         check('name', 'El nombre es olbigatorio').not().isEmpty(),
         check('password', 'La contraseña es obligatoria').not().isEmpty(),
         validarCampos
