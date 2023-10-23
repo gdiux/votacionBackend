@@ -3,6 +3,7 @@ const fs = require('fs');
 // MODELS
 const User = require('../models/users.model');
 const Candidate = require('../models/candidates.model');
+const Mesa = require('../models/mesas.model');
 
 /** =====================================================================
  *  DELETE IMAGE
@@ -25,7 +26,7 @@ const deleteImage = (path) => {
 /** =====================================================================
  *  UPDATE IMAGE 
 =========================================================================*/
-const updateImage = async(tipo, id, nameFile, desc) => {
+const updateImage = async(tipo, id, nameFile, desc, titulo = '') => {
 
     let pathOld = '';
 
@@ -66,6 +67,22 @@ const updateImage = async(tipo, id, nameFile, desc) => {
             await candidate.save();
             return true;
 
+            break;
+        case 'evidencias':
+            // SEARCH MESA BY ID
+            const mesa = await Mesa.findById(id);
+            if (!mesa) {
+                return false;
+            }
+
+            mesa.evidencias.push({
+                titulo,
+                img: nameFile,
+                fecha: new Date(Date.now())
+            })
+            
+            await mesa.save();
+            return true;
             break;
 
         default:

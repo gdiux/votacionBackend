@@ -15,6 +15,19 @@ const LogSchema = Schema({
 
 });
 
+const EvidenciasSchema = Schema({
+    titulo: {
+        type: String
+    },
+    img: {
+        type: String
+    },
+    fecha: {
+        type: Date,
+        default: Date.now
+    },
+});
+
 const MesaSchema = Schema({
 
     number: {
@@ -31,6 +44,8 @@ const MesaSchema = Schema({
         type: Schema.Types.ObjectId,
         ref: 'Centers'
     },
+
+    evidencias: [EvidenciasSchema],
     
     status: {
         type: Boolean,
