@@ -9,7 +9,7 @@ const { validarCampos } = require('../middlewares/validar-campos');
 const { validarJWT } = require('../middlewares/validar-jwt');
 
 // CONTROLLERS
-const { getMesas, createMesa, getMesasId, updateMesa, deleteMesa } = require('../controllers/mesas.controller');
+const { getMesas, createMesa, getMesasId, updateMesa, deleteMesa, addVotoMesa } = require('../controllers/mesas.controller');
 
 
 const router = Router();
@@ -34,6 +34,19 @@ router.post('/', [
         validarCampos
     ],
     createMesa
+);
+
+/** =====================================================================
+ *  POST ADD VOTO
+=========================================================================*/
+router.post('/add/voto', [
+    validarJWT,
+    check('candidate', 'El ID del candidato es invalido').isMongoId(),
+    check('qty', 'El ID del centro de votación es invalido').not().isEmpty(),
+    check('mesa', 'El ID de la mesa de votación es invalido').isMongoId(),
+    validarCampos
+],
+addVotoMesa
 );
 
 /** =====================================================================

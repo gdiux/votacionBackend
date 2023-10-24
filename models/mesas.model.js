@@ -28,6 +28,24 @@ const EvidenciasSchema = Schema({
     },
 });
 
+const VotacionSchema = Schema({
+
+    candidate: {
+        type: Schema.Types.ObjectId,
+        ref: 'Candidates'
+    },
+
+    qty: {
+        type: Number
+    },
+    
+    testigo: {
+        type: Schema.Types.ObjectId,
+        ref: 'User'
+    },
+
+});
+
 const MesaSchema = Schema({
 
     number: {
@@ -46,6 +64,7 @@ const MesaSchema = Schema({
     },
 
     evidencias: [EvidenciasSchema],
+    votacion: [VotacionSchema],
     
     status: {
         type: Boolean,
@@ -55,6 +74,45 @@ const MesaSchema = Schema({
     open: {
         type: Boolean,
         default: false
+    },
+
+    total: {
+        type: Number,
+        default: 0
+    },
+
+    sufragantes: {
+        type: Number,
+        default: 0
+    },
+
+    votosurnas: {
+        type: Number,
+        default: 0
+    },
+
+    blancos: {
+        type: Number,
+        default: 0
+    },
+
+    nulos: {
+        type: Number,
+        default: 0
+    },
+
+    incinerados: {
+        type: Number,
+        default: 0
+    },
+
+    recuento: {
+        type: Boolean,
+        default: false
+    },
+
+    nota: {
+        type: String
     },
 
     log: [LogSchema]
