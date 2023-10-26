@@ -50,6 +50,8 @@ const getMesas = async(req, res) => {
 const getMesasId = async(req, res = response) => {
 
     try {
+
+        const uid = req.uid;
         const id = req.params.id;
 
         const mesaDB = await Mesa.findById(id)
@@ -62,6 +64,17 @@ const getMesasId = async(req, res = response) => {
                 ok: false,
                 msg: 'No existe ninguna mesa de votación con este ID'
             });
+        }
+
+        // AUTHORIZE
+        const user = await User.findById(uid);
+        if (user.role !== 'ADMIN') {
+            if ( (String)(new ObjectId(user._id)) !== (String)(new ObjectId(mesaDB.staff._id))) {
+                return res.status(403).json({
+                    ok: false,
+                    msg: 'No tienes la authorizacion necesaria'
+                });                
+            }
         }
 
         res.json({
@@ -86,7 +99,19 @@ const getMesasId = async(req, res = response) => {
 const createMesa = async(req, res = response) => {
 
     
-    try {        
+    try {
+
+        const uid = req.uid;
+        
+        // AUTHORIZE
+        const user = await User.findById(uid);
+        if (user.role !== 'ADMIN') {
+            return res.status(403).json({
+                ok: false,
+                msg: 'No tienes la authorizacion necesaria'
+            });
+        }
+
         const mesa = new Mesa(req.body);
         
         // COMPROBAR CENTRO DE VOTACION
@@ -100,14 +125,13 @@ const createMesa = async(req, res = response) => {
 
         // NUMERO DE MESA
         const number = await Mesa.countDocuments({center: mesa.center});
-
         mesa.number = number + 1;
 
         // SAVE MESA
         await mesa.save();
 
         // DEVOLVER MESA
-        const mesaDB = await Mesa.findById(mesa.mid)
+        const mesaDB = await Mesa.findById(mesa._id)
             .populate('center')
             .populate('staff');
 
@@ -134,7 +158,7 @@ const addVotoMesa = async(req, res = response) => {
         
         const uid = req.uid;
         const { mesa, ...voto } = req.body;
-
+        
         // COMPROBAR VOTOS
         if (voto.qty < 0) {
             return res.status(404).json({
@@ -159,6 +183,25 @@ const addVotoMesa = async(req, res = response) => {
             });
         }
 
+        // AUTHORIZE
+        const user = await User.findById(uid);
+        if (user.role !== 'ADMIN') {
+            if ((String)(new ObjectId(user._id)) !== (String)(new ObjectId(mesaDB.staff))) {
+                return res.status(403).json({
+                    ok: false,
+                    msg: 'No tienes la authorizacion necesaria'
+                });                
+            }else{
+                if (!mesaDB.open) {
+                    return res.status(400).json({
+                        ok: false,
+                        msg: 'La mesa esta cerrada y no puedes agregar votos'
+                    });
+                }
+            }
+
+        }
+
         const validar = mesaDB.votacion.findIndex( (votoDB) => {
             if( (String)(new ObjectId(votoDB.candidate._id)) === voto.candidate ){
               return true;
@@ -181,8 +224,15 @@ const addVotoMesa = async(req, res = response) => {
             mesaDB.sufragantes = mesaDB.sufragantes + voto.qty;
             mesaDB.votosurnas = mesaDB.votosurnas + voto.qty;
     
-            // GUARDAMOS LA INFORMACION
-            mesaDB.save();
+            let campos = {
+                total: mesaDB.total,
+                sufragantes: mesaDB.sufragantes,
+                votosurnas: mesaDB.votosurnas,
+                votacion: mesaDB.votacion
+            }
+
+            // UPDATE
+            await Mesa.findByIdAndUpdate(mesa, campos, { new: true, useFindAndModify: false });
     
             // DEVOLVEMOS LA MESA
             const mesaUp = await Mesa.findById(mesa)
@@ -214,15 +264,104 @@ const addVotoMesa = async(req, res = response) => {
 
 };
 
+/** =====================================================================
+ *  DELETE VOTO
+=========================================================================*/
+const delVoto = async(req, res = response) => {
+
+    try {
+        
+        const mid   = req.params.mid;
+        const voto  = req.params.voto;
+        const qty   = Number(req.params.qty);
+        const uid   = req.uid;
+
+        // COMPROVAR QUE EL ID ES VALIDO
+        if (!ObjectId.isValid(mid)) {
+            return res.status(404).json({
+                ok: false,
+                msg: 'Error en el ID de la mesa'
+            });
+        }
+
+        const mesa = await Mesa.findById(mid)
+
+        // AUTHORIZE
+        const user = await User.findById(uid);
+        if (user.role !== 'ADMIN') {
+            if ((String)(new ObjectId(user._id)) !== (String)(new ObjectId(mesa.staff))) {
+                return res.status(403).json({
+                    ok: false,
+                    msg: 'No tienes la authorizacion necesaria'
+                });                
+            }else{
+                if (!mesa.open) {
+                    return res.status(400).json({
+                        ok: false,
+                        msg: 'La mesa esta cerrada y no puedes eliminar votos'
+                    });
+                }
+            }
+
+        }
+
+        const deleteVoto = await Mesa.updateOne({ _id: mid }, { $pull: { votacion: { _id: voto } } });
+
+        // VERIFICAR SI SE ACTUALIZO
+        if (deleteVoto.nModified === 0) {
+            return res.status(400).json({
+                ok: false,
+                msg: 'No se pudo eliminar este voto, porfavor intente de nuevo'
+            });
+        }       
+
+        // RESTAR VOTO EN TOTALES
+        mesa.total = mesa.total - qty;
+        mesa.sufragantes = mesa.sufragantes - qty;
+        mesa.votosurnas = mesa.votosurnas - qty;
+        
+        let campos = {
+            total: mesa.total,
+            sufragantes: mesa.sufragantes,
+            votosurnas: mesa.votosurnas
+        }
+
+        // UPDATE
+        await Mesa.findByIdAndUpdate(mid, campos, { new: true, useFindAndModify: false });
+
+        const mesaDB = await Mesa.findById(mid)
+            .populate('center')
+            .populate('votacion.candidate')
+            .populate('votacion.testigo', 'email name cedula role address img status fecha uid')
+            .populate('staff', 'email name cedula role address img status fecha uid');
+
+        
+
+        res.json({
+            ok: true,
+            mesa: mesaDB
+        });
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            ok: false,
+            msg: 'Error Inesperado'
+        });
+    }
+
+};
+
 
 /** =====================================================================
- *  UPDATE CENTER
+ *  UPDATE MESA
 =========================================================================*/
 const updateMesa = async(req, res = response) => {
     
     try {
 
         const mid = req.params.id;
+        const uid = req.uid;
 
         // SEARCH MESA
         const mesaDB = await Mesa.findById(mid);
@@ -234,8 +373,35 @@ const updateMesa = async(req, res = response) => {
         }
         // SEARCH MESA
 
+        // AUTHORIZE
+        const user = await User.findById(uid);
+        if (user.role !== 'ADMIN') {
+            if ((String)(new ObjectId(user._id)) !== (String)(new ObjectId(mesaDB.staff))) {
+                return res.status(403).json({
+                    ok: false,
+                    msg: 'No tienes la authorizacion necesaria'
+                });                
+            }else{
+                if (!mesaDB.open) {
+                    return res.status(400).json({
+                        ok: false,
+                        msg: 'La mesa esta cerrada y no se puede modificar'
+                    });
+                }
+            }
+        }
+
         // VALIDATE MESA
-        const { votacion, ...campos } = req.body;
+        const { votacion, open, ...campos } = req.body;
+
+        // ABRIR O CERRAR MESA
+        if (open !== undefined) {            
+            if (open === false ) {
+                campos.open = true;
+            }else{
+                campos.open = false;
+            }
+        }
 
         // UPDATE
         const mesaUpdate = await Mesa.findByIdAndUpdate(mid, campos, { new: true, useFindAndModify: false });
@@ -251,6 +417,45 @@ const updateMesa = async(req, res = response) => {
             ok: false,
             msg: 'Error Inesperado'
         });
+    }
+
+};
+
+/** =====================================================================
+ *  OPEN MESA
+=========================================================================*/
+const openAllMesas = async(req, res = response) => {
+
+    try {
+
+        const uid = req.uid;
+
+        // AUTHORIZE
+        const user = await User.findById(uid);
+        if (user.role !== 'ADMIN') {
+            return res.status(403).json({
+                ok: false,
+                msg: 'No tienes la authorizacion necesaria'
+            });
+        }
+
+        const mesas = await Mesa.find();
+
+        for (const mesa of mesas) {            
+            await Mesa.findByIdAndUpdate(mesa._id, {open: true}, { new: true, useFindAndModify: false });
+        }
+
+        res.json({
+            ok: true,
+            msg: 'Todas las mesas se han aperturado exitosamente!'
+        });
+        
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            ok: false,
+            msg: 'Error Inesperado'
+        }); 
     }
 
 };
@@ -280,6 +485,15 @@ const deleteMesa = async(req, res = response) => {
             }
         }
         // SEARCH USER
+
+        // AUTHORIZE
+        const user = await User.findById(uid);
+        if (user.role !== 'ADMIN') {
+            return res.status(403).json({
+                ok: false,
+                msg: 'No tienes la authorizacion necesaria'
+            });
+        }
         
         // SEARCH CENTER
         const mesaDB = await Mesa.findById({ _id: mid });
@@ -324,5 +538,7 @@ module.exports = {
     updateMesa,
     deleteMesa,
     getMesasId,
-    addVotoMesa
+    addVotoMesa,
+    delVoto,
+    openAllMesas
 };

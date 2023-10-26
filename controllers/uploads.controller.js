@@ -171,7 +171,6 @@ const deleteImg = async(req, res = response) => {
 
                 const deleteImgEvidencia = await Mesa.updateOne({ _id: id }, { $pull: { evidencias: { img } } });
 
-
                 // VERIFICAR SI SE ACTUALIZO
                 if (deleteImgEvidencia.nModified === 0) {
                     return res.status(400).json({

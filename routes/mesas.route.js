@@ -9,7 +9,7 @@ const { validarCampos } = require('../middlewares/validar-campos');
 const { validarJWT } = require('../middlewares/validar-jwt');
 
 // CONTROLLERS
-const { getMesas, createMesa, getMesasId, updateMesa, deleteMesa, addVotoMesa } = require('../controllers/mesas.controller');
+const { getMesas, createMesa, getMesasId, updateMesa, deleteMesa, addVotoMesa, delVoto, openAllMesas } = require('../controllers/mesas.controller');
 
 
 const router = Router();
@@ -55,9 +55,19 @@ addVotoMesa
 router.put('/:id', validarJWT, updateMesa);
 
 /** =====================================================================
+ *  PUT OPEN OR CLOSE MESA
+=========================================================================*/
+router.put('/open/all', validarJWT, openAllMesas);
+
+/** =====================================================================
  *  DELETE MESA
 =========================================================================*/
 router.delete('/:id', validarJWT, deleteMesa);
+
+/** =====================================================================
+ *  DELETE VOTO OF MESA
+=========================================================================*/
+router.delete('/voto/:mid/:voto/:qty', validarJWT, delVoto);
 
 
 
