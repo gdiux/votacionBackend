@@ -45,6 +45,59 @@ const getMesas = async(req, res) => {
 };
 
 /** =====================================================================
+ *  GET MESAS CENTERS
+=========================================================================*/
+const getMesasCenters = async(req, res = response) => {
+
+    try {
+
+        const { desde, hasta } = req.body;
+        
+        let centers = [];
+        centers = req.body.centros;
+
+        const ids = [];
+
+        for (const centro of centers) {
+            ids.push(centro)
+        }
+
+        let query = {
+            center: {
+                $in: ids
+            }
+        }
+
+        const [mesas, total] = await Promise.all([
+            Mesa.find()
+            .populate('center')
+            .populate('votacion.candidate')
+            .populate('votacion.testigo', 'email name cedula role address img status fecha uid')
+            .populate('staff', 'email name cedula role address img status fecha uid')
+            .limit(hasta)
+            .skip(desde)
+            .where('center').in(ids).exec(),
+            Mesa.countDocuments(query)
+        ]);
+
+        res.json({
+            ok: true,
+            mesas,
+            total
+        });
+
+        
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            ok: false,
+            msg: 'Error inesperado, porfavor intente nuevamente'
+        });
+    }
+
+};
+
+/** =====================================================================
  *  GET MESA ID
 =========================================================================*/
 const getMesasId = async(req, res = response) => {
@@ -540,5 +593,6 @@ module.exports = {
     getMesasId,
     addVotoMesa,
     delVoto,
-    openAllMesas
+    openAllMesas,
+    getMesasCenters
 };

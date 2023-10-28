@@ -23,6 +23,10 @@ const CentersSchema = Schema({
         type: String
     },
 
+    comuna: {
+        type: String
+    },
+
     img: {
         type: String
     },
@@ -32,6 +36,11 @@ const CentersSchema = Schema({
     },
     lng: {
         type: Number
+    },
+
+    total: {
+        type: Number,
+        default: 0
     },
 
     status: {

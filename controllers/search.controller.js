@@ -1,6 +1,7 @@
 const { response } = require('express');
 
 const User = require('../models/users.model');
+const Center = require('../models/centers.model');
 
 /** =====================================================================
  *  SEARCH FOR TABLE
@@ -41,6 +42,23 @@ const search = async(req, res = response) => {
                     ]
                 }),
                 User.countDocuments()
+            ]);
+            break;
+        case 'centers':
+
+            // data = await User.find({ name: regex });
+            [data, total] = await Promise.all([
+                Center.find({
+                    $or: [
+                        { code: regex },
+                        { name: regex },
+                        { department: regex },
+                        { city: regex },
+                        { address: regex },
+                        { comuna: regex },
+                    ]
+                }),
+                Center.countDocuments()
             ]);
             break;
 
