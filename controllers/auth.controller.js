@@ -12,6 +12,8 @@ const login = async(req, res = response) => {
 
     const { email, password } = req.body;
 
+    email = email.trim().toLowerCase();
+
     try {
 
         // VALIDATE USER

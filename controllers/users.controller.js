@@ -69,7 +69,6 @@ const getUserId = async(req, res = response) => {
  *  CREATE USERS
 =========================================================================*/
 const createUsers = async(req, res = response) => {
-
     
     try {
 
