@@ -10,7 +10,7 @@ const { generarJWT } = require('../helpers/jwt');
 =========================================================================*/
 const login = async(req, res = response) => {
 
-    const { email, password } = req.body;
+    let { email, password } = req.body;
 
     email = email.trim().toLowerCase();
 
